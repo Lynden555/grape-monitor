@@ -1,6 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const path = require('path');
+const bcrypt = require('bcrypt');
 
 const connectDB = require('./config/database');
 const impresorasRoutes = require('./routes/impresoras');
@@ -10,6 +11,16 @@ const PORT = 8080; // Puerto fijo para Railway
 
 // Conectar a la base de datos
 connectDB();
+
+// Schema de Usuario para login
+const usuarioSchema = new mongoose.Schema({
+  email: String,
+  password: String,
+  activo: Boolean,
+  empresaId: String,
+  ciudad: String
+});
+const Usuario = mongoose.model('Usuario', usuarioSchema);
 
 // Middlewares básicos
 app.use(express.json({ limit: '10mb' }));
@@ -29,6 +40,39 @@ app.use((req, res, next) => {
 // Rutas
 app.use('/', impresorasRoutes);
 
+// Endpoint de Login
+app.post('/login', async (req, res) => {
+  const { email, password, ciudad } = req.body;
+  
+  try {
+    const usuario = await Usuario.findOne({ email, ciudad });
+    
+    if (!usuario) {
+      return res.status(401).json({ error: 'Usuario no encontrado' });
+    }
+
+    const passwordOk = await bcrypt.compare(password, usuario.password);
+    if (!passwordOk) {
+      return res.status(401).json({ error: 'Contraseña incorrecta' });
+    }
+
+    if (!usuario.activo) {
+      return res.status(403).json({ error: 'Licencia inactiva, contacta a soporte' });
+    }
+
+    res.json({ 
+      message: 'Login exitoso',
+      empresaId: usuario.empresaId,
+      email: usuario.email,
+      ciudad: usuario.ciudad
+    });
+    
+  } catch (error) {
+    console.error('Error en login:', error);
+    res.status(500).json({ error: 'Error en el servidor' });
+  }
+});
+
 // Ruta de prueba
 app.get('/', (req, res) => {
   res.json({ 
@@ -40,7 +84,8 @@ app.get('/', (req, res) => {
       impresoras: '/api/empresas/:empresaId/impresoras',
       metrics: '/api/metrics/impresoras',
       cortes: '/api/impresoras/:id/registrar-corte',
-      pdf: '/api/impresoras/:id/generar-pdf'
+      pdf: '/api/impresoras/:id/generar-pdf',
+      login: '/login'
     }
   });
 });
