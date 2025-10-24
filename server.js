@@ -9,9 +9,6 @@ const impresorasRoutes = require('./routes/impresoras');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Conectar a la base de datos
-connectDB();
-
 // Middlewares básicos
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
@@ -35,6 +32,7 @@ app.get('/', (req, res) => {
   res.json({ 
     message: '🚀 Backend de Monitoreo de Impresoras funcionando',
     version: '1.0.0',
+    environment: process.env.NODE_ENV || 'development',
     endpoints: {
       empresas: '/api/empresas',
       impresoras: '/api/empresas/:empresaId/impresoras',
@@ -45,7 +43,7 @@ app.get('/', (req, res) => {
   });
 });
 
-// Manejo de errores 404 - CORREGIDO
+// Manejo de errores 404
 app.use((req, res) => {
   res.status(404).json({ 
     ok: false, 
@@ -63,9 +61,15 @@ app.use((error, req, res, next) => {
   });
 });
 
-// Iniciar servidor
-app.listen(PORT, () => {
-  console.log(`🚀 Servidor de Monitoreo corriendo en puerto ${PORT}`);
-  console.log(`📊 Base de datos: Monitoreo Impresoras`);
-  console.log(`📍 URL: http://localhost:${PORT}`);
+// Conectar a la base de datos y luego iniciar servidor
+connectDB().then(() => {
+  app.listen(PORT, () => {
+    console.log(`🚀 Servidor de Monitoreo corriendo en puerto ${PORT}`);
+    console.log(`📊 Base de datos: Monitoreo Impresoras`);
+    console.log(`📍 URL: http://localhost:${PORT}`);
+    console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+  });
+}).catch(error => {
+  console.error('❌ No se pudo iniciar la aplicación:', error);
+  process.exit(1);
 });
