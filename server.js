@@ -1,13 +1,15 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const path = require('path');
-require('dotenv').config();
 
 const connectDB = require('./config/database');
 const impresorasRoutes = require('./routes/impresoras');
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = 8080; // Puerto fijo para Railway
+
+// Conectar a la base de datos
+connectDB();
 
 // Middlewares básicos
 app.use(express.json({ limit: '10mb' }));
@@ -32,7 +34,7 @@ app.get('/', (req, res) => {
   res.json({ 
     message: '🚀 Backend de Monitoreo de Impresoras funcionando',
     version: '1.0.0',
-    environment: process.env.NODE_ENV || 'development',
+    database: 'monitoreo_impresoras',
     endpoints: {
       empresas: '/api/empresas',
       impresoras: '/api/empresas/:empresaId/impresoras',
@@ -61,15 +63,10 @@ app.use((error, req, res, next) => {
   });
 });
 
-// Conectar a la base de datos y luego iniciar servidor
-connectDB().then(() => {
-  app.listen(PORT, () => {
-    console.log(`🚀 Servidor de Monitoreo corriendo en puerto ${PORT}`);
-    console.log(`📊 Base de datos: Monitoreo Impresoras`);
-    console.log(`📍 URL: http://localhost:${PORT}`);
-    console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
-  });
-}).catch(error => {
-  console.error('❌ No se pudo iniciar la aplicación:', error);
-  process.exit(1);
+// Iniciar servidor
+app.listen(PORT, () => {
+  console.log(`🚀 Servidor de Monitoreo corriendo en puerto ${PORT}`);
+  console.log(`📊 Base de datos: monitoreo_impresoras`);
+  console.log(`📍 URL: http://localhost:${PORT}`);
+  console.log(`🔗 MongoDB: Cluster0`);
 });
