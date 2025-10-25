@@ -30,11 +30,17 @@ app.use(express.urlencoded({ extended: true }));
 // Servir archivos estáticos
 app.use('/uploads', express.static('uploads'));
 
-// Configuración CORS básica
+
+// NUEVA Configuración CORS corregida
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  
+  // Manejar requests OPTIONS directamente
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
   next();
 });
 
