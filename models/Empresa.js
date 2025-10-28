@@ -12,8 +12,6 @@ empresaSchema.index({ empresaId: 1, ciudad: 1, createdAt: -1 });
 
 module.exports = mongoose.model('Empresa', empresaSchema);
 
-const mongoose = require('mongoose');
-
 const carpetaSchema = new mongoose.Schema({
   nombre: String,
   tipo: { type: String, enum: ['root', 'folder'], default: 'folder' },
