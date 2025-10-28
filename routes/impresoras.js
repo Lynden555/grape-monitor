@@ -316,6 +316,92 @@ router.get('/api/empresas', async (req, res) => {
   }
 });
 
+
+// ✏️ PUT /api/empresas/:id - Renombrar empresa
+router.put('/api/empresas/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { nombre } = req.body;
+
+    if (!nombre || nombre.trim().length < 3) {
+      return res.status(400).json({
+        ok: false,
+        error: 'El nombre debe tener al menos 3 caracteres'
+      });
+    }
+
+    // Buscar y actualizar la empresa
+    const empresa = await Empresa.findByIdAndUpdate(
+      id,
+      { nombre: nombre.trim() },
+      { new: true }
+    );
+
+    if (!empresa) {
+      return res.status(404).json({
+        ok: false,
+        error: 'Empresa no encontrada'
+      });
+    }
+
+    res.json({
+      ok: true,
+      data: empresa,
+      message: `Empresa renombrada a "${nombre}"`
+    });
+
+  } catch (error) {
+    console.error('❌ Error renombrando empresa:', error);
+    res.status(500).json({
+      ok: false,
+      error: 'Error interno del servidor'
+    });
+  }
+});
+
+// 🗑️ DELETE /api/empresas/:id - Eliminar empresa (YA EXISTE PERO MEJORADO)
+router.delete('/api/empresas/:id', async (req, res) => {
+  try {
+    const empresa = await Empresa.findByIdAndDelete(req.params.id);
+    if (!empresa) return res.status(404).json({ ok: false, error: 'Empresa no encontrada' });
+
+    // Opcional: Eliminar también las impresoras asociadas
+    await Impresora.deleteMany({ empresaId: req.params.id });
+    await ImpresoraLatest.deleteMany({ empresaId: req.params.id });
+    await CortesMensuales.deleteMany({ empresaId: req.params.id });
+
+    res.json({ 
+      ok: true,
+      message: `Empresa "${empresa.nombre}" eliminada correctamente` 
+    });
+  } catch (err) {
+    console.error('❌ DELETE /api/empresas/:id', err);
+    res.status(500).json({ ok: false, error: 'Error eliminando empresa' });
+  }
+});
+
+
+
+// 🔍 GET /api/empresas/:id - Obtener empresa específica
+router.get('/api/empresas/:id', async (req, res) => {
+  try {
+    const empresa = await Empresa.findById(req.params.id);
+    if (!empresa) {
+      return res.status(404).json({ ok: false, error: 'Empresa no encontrada' });
+    }
+
+    res.json({
+      ok: true,
+      data: empresa
+    });
+  } catch (err) {
+    console.error('❌ GET /api/empresas/:id:', err);
+    res.status(500).json({ ok: false, error: 'Error obteniendo empresa' });
+  }
+});
+
+
+
 // 🖨️ Listar impresoras de una empresa
 router.get('/api/empresas/:empresaId/impresoras', async (req, res) => {
   try {
