@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Empresa = require('../models/Empresa');
+const { Carpeta, AsignacionCarpeta } = require('../models/Carpeta');
 const Impresora = require('../models/Impresora');
 const ImpresoraLatest = require('../models/ImpresoraLatest');
 const CortesMensuales = require('../models/CortesMensuales');
